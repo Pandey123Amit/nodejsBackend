@@ -14,6 +14,13 @@ export interface User {
     isemailVerified: number,
 }
 
+export interface Session {
+    id: number,
+    accessToken: string,
+    createdAt: Date
+    userid: number
+}
+
 
 export const register = async (Fname: string, Lname: string, email: string, phonenumber: number, password: string): Promise<User> => {
     const query = `INSERT INTO usersdata(Fname,Lname,username,phonenumber,email,password) 
@@ -28,21 +35,41 @@ export const register = async (Fname: string, Lname: string, email: string, phon
     }
 }
 
-export const checkCredentails = async (email: string, password: string): Promise<boolean> => {
-    const queryString = `Select id,email,username,password from usersdata where email = $1;`
+export const checkCredentails = async (
+    email: string,
+    password: string
+): Promise<{ success: boolean; user?: User }> => {
+    const queryString = `SELECT id, email, username, password FROM usersdata WHERE email = $1;`;
+
     try {
-        const queryValue = await pool.query(queryString, [email])
-        const dataset: User = queryValue.rows[0]
+        const queryValue = await pool.query(queryString, [email]);
+        //console.log(email,password);
+        
+        const dataset: User = queryValue.rows[0];
         if (dataset && (dataset.username === email.split('@')[0] || dataset.email === email) && dataset.password === password) {
-            return true
+            //console.log("inside if check:",dataset);
+            return { success: true, user: dataset };
         }
-        return false
+
+        return { success: false };
     } catch (error) {
         console.log(`Error in fetching: ${error}`);
-        throw new Error('Something worng in userModels')
+        throw new Error('Something went wrong in checkCredentials');
+    }
+};
+
+
+export const findById = async (userid: number) => {
+    try {
+        const query = `select * from user where id = $1;`
+        const queryValue = await pool.query(query, [userid])
+        const dataset: User = queryValue.rows[0]
+        return dataset
+
+    } catch (error) {
+        throw new Error("SOmething wrong in FindByid Method")
     }
 }
-
 
 
 

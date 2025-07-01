@@ -38,8 +38,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const userController = __importStar(require("../controllers/userController"));
+const auth_middelware_1 = require("../middlewares/auth.middelware");
 const router = express_1.default.Router();
 router.post('/signup', userController.registerUser);
+router.route('/logout').post(auth_middelware_1.verifyToken, userController.logout);
 router.post('/login', userController.loginUser);
 exports.default = router;
 //# sourceMappingURL=UserRoutes.js.map

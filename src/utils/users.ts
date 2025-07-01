@@ -2,6 +2,8 @@ import dotenv from 'dotenv';
 import nodemailer from 'nodemailer';
 import pool from '../db/dbconn';
 import { User } from '../model/userModel';
+import {randomBytes} from "node:crypto";
+
 dotenv.config();
 
 
@@ -31,3 +33,27 @@ export const userExist = async (email:string):Promise<boolean> => {
         }
     };
 
+export const tokenGenerate = (key:string) => {
+    return Buffer.from(randomBytes(key.length)).toString('hex'); //stackoverflow
+}
+
+export const insertByColNameAndValueAndTablename = async (
+    tableName: string,
+    columnNames: string[],
+    values: any[]
+): Promise<User> => {
+    if (columnNames.length !== values.length) {
+        throw new Error("Column names and values count must match.");
+    }
+
+    const columns = columnNames.map(col => `"${col}"`).join(", ");
+    const placeholders = values.map((_, i) => `$${i + 1}`).join(", ");
+    const query = `INSERT INTO "${tableName}" (${columns}) VALUES (${placeholders}) RETURNING *`;
+    try {
+        const result = await pool.query(query, values);
+        return result.rows[0]; 
+    } catch (error) {
+        console.error("Insert failed:", error);
+        throw error;
+    }
+};

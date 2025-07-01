@@ -36,11 +36,23 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.loginUser = exports.registerUser = void 0;
+exports.logout = exports.loginUser = exports.registerUser = void 0;
 const UserModel = __importStar(require("../model/userModel"));
 const users_1 = require("../utils/users");
 const emailSend_1 = require("../utils/emailSend");
 const dbconn_1 = __importDefault(require("../db/dbconn"));
+const generatedAccessToken = async (user) => {
+    const accessTokenKey = process.env.ACCESS_TOKEN_SECRET;
+    if (!accessTokenKey) {
+        throw new Error("ACCESS_TOKEN_SECRET is not defined in environment variables.");
+    }
+    const accessToken = (0, users_1.tokenGenerate)(accessTokenKey);
+    const dataset = await (0, users_1.insertByColNameAndValueAndTablename)('sessions', ['access_token', 'user_id'], [accessToken, user]);
+    if (!dataset) {
+        throw new Error("Failed to insert session token.");
+    }
+    return accessToken;
+};
 const registerUser = async (req, res) => {
     const { Fname, Lname, phonenumber, email } = req.body;
     const isuserExist = await (0, users_1.userExist)(email);
@@ -95,10 +107,21 @@ const loginUser = async (req, res) => {
         });
     }
     try {
-        const isValidCredentails = await UserModel.checkCredentails(email, password);
-        if (isValidCredentails) {
-            return res.status(200).json({
-                message: "Login successful",
+        const result = await UserModel.checkCredentails(email, password);
+        console.log(result);
+        if (result.success && result.user) {
+            const accessTokenKey = await generatedAccessToken(result.user.id);
+            // console.log(accessTokenKey);
+            const option = {
+                httpOnly: true,
+                secure: true
+            };
+            return res.status(200).cookie("access-token", accessTokenKey, option).json({
+                message: "Login successfullllllll",
+                user: {
+                    loginUser: result.user.id,
+                    accessToken: accessTokenKey,
+                }
             });
         }
         return res.status(401).json({
@@ -108,9 +131,31 @@ const loginUser = async (req, res) => {
     catch (err) {
         return res.status(500).json({
             message: "Something went wrong during login",
-            error: err,
+            error: err instanceof Error ? err.message : err,
         });
     }
 };
 exports.loginUser = loginUser;
+const logout = async (req, res) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader === null || authHeader === void 0 ? void 0 : authHeader.split(' ')[1];
+    if (!token) {
+        res.status(400).json({ message: 'No token provided' });
+        return;
+    }
+    try {
+        const option = {
+            httpOnly: true,
+            secure: true
+        };
+        await dbconn_1.default.query('DELETE FROM sessions WHERE access_token = $1', [token]);
+        res.clearCookie('access-token', option);
+        res.status(200).json({ message: 'Logged out successfully' });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error during logout' });
+    }
+};
+exports.logout = logout;
 //# sourceMappingURL=userController.js.map

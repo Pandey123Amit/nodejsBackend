@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import pool, { testDBConnection } from './db/dbconn';
 import todoRoutes from './routes/TodoRoutes';
 import UserRoutes from "./routes/UserRoutes"
+import cookieParser from 'cookie-parser'; 
+
 
 
 dotenv.config();
@@ -10,6 +12,7 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 app.use(express.json());
+app.use(cookieParser()); 
 app.use('/api/todos', todoRoutes);
 app.use('/api/users',UserRoutes);
 

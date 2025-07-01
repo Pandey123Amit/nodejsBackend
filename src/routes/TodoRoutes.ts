@@ -1,6 +1,5 @@
 import express from 'express';
 import * as todoController from '../controllers/TodoControllers';
-import { asyncHandler } from '../middlewares/asyncHandler';
 
 const router = express.Router();
 
