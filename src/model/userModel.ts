@@ -21,6 +21,18 @@ export interface Session {
     userid: number
 }
 
+export interface Address {             
+  user_id: number;         
+  address_line: string;   
+  city?: string;
+  state?: string;
+  country?: string;
+  postal_code?: string;
+  latitude?: number;       
+  longitude?: number;
+  created_at?: string;     
+}
+
 
 export const register = async (Fname: string, Lname: string, email: string, phonenumber: number, password: string): Promise<User> => {
     const query = `INSERT INTO usersdata(Fname,Lname,username,phonenumber,email,password) 

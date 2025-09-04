@@ -5,9 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.verifyToken = void 0;
 const dbconn_1 = __importDefault(require("../db/dbconn"));
-// export interface AuthenticatedRequest extends Request {
-//     user: { id: number }; 
-// }
 const verifyToken = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader === null || authHeader === void 0 ? void 0 : authHeader.split(' ')[1];
@@ -22,8 +19,7 @@ const verifyToken = async (req, res, next) => {
             res.status(403).json({ message: 'Invalid token' });
             return;
         }
-        // req.user = { id: session.user_id };
-        next(); // Continue to controller
+        next();
     }
     catch (error) {
         console.error(error);

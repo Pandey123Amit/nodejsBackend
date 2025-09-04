@@ -3,6 +3,9 @@ import * as UserModel from '../model/userModel';
 import { genratedpassword, userExist, tokenGenerate, insertByColNameAndValueAndTablename } from '../utils/users';
 import { sendEmail } from '../utils/emailSend';
 import pool from '../db/dbconn';
+import { getLatLng } from '../utils/getLocation';
+import { logger } from "../utils/logger";
+
 
 
 
@@ -21,11 +24,8 @@ const generatedAccessToken = async (user: number): Promise<string> => {
 };
 
 
-
-
-
 export const registerUser = async (req: Request, res: Response) => {
-    const { Fname, Lname, phonenumber, email } = req.body
+    const { Fname, Lname, phonenumber, email, addLine1, addLine2, city, state, country, postal_code } = req.body
     const isuserExist: boolean = await userExist(email)
     // console.log(isuserexit);
     try {
@@ -49,19 +49,38 @@ export const registerUser = async (req: Request, res: Response) => {
                 <p>Use these credentials to log in to the system.</p>`,
                 });
             }
-            if (isemail) {
+            // console.log(state, postal_code, addLine1 + addLine2);
+            const address_line = addLine1 + " " + addLine2;
+            const prepareData: string = `${address_line}, ${city}, ${state}, ${country}, ${postal_code}`;
+            const location = await getLatLng(prepareData);
+
+            if (!location) {
+                console.log("Cannot insert address: no lat/lng found");
+                logger.warn("registerUser: location not fetch")
+                return; // or throw error
+            }
+
+            const datasetAddress: UserModel.Address = await insertByColNameAndValueAndTablename(
+                'addresses',
+                ['user_id', 'address_line', 'city', 'state', 'country', 'postal_code', 'latitude', 'longitude'],
+                [dataset.id, address_line, city, state, country, postal_code, location.lat, location.lng]
+            );
+
+            if (isemail && datasetAddress) {
                 console.log(dataset.id);
-                await pool.query(`UPDATE usersdata SET isCredentailsSend = $2 where id=$1;`, [dataset.id, true])
+                await pool.query(`UPDATE usersdata SET iscredentialssend = $2 where id=$1;`, [dataset.id, true])
                 res.json({
                     email: dataset.email,
                     username: dataset.username,
                     message: "Please check Email for login Credentials"
                 });
+                logger.error("registerUser: Please check Email for login Credentials")
                 return
             }
 
         }
     } catch (err) {
+        logger.error("registerUser:",err)
         res.json({
             meassage: "Something Went Wrong in signup",
             erros: err

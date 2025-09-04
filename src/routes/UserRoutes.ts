@@ -1,14 +1,11 @@
 import express from 'express';
-import * as userController from '../controllers/userController';
-import {verifyToken} from '../middlewares/auth.middelware'
+import { registerUser, logout, loginUser } from '../controllers/userController';
+import { verifyToken } from '../middlewares/auth.middelware';
 
 const router = express.Router();
 
-router.post('/signup', userController.registerUser);
-router.route('/logout').post(verifyToken,userController.logout)
-router.post('/login', userController.loginUser); 
-
+router.post('/signup', registerUser);
+router.post('/logout', verifyToken, logout);
+router.post('/login', loginUser);
 
 export default router;
-
-
