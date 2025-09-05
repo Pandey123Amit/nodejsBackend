@@ -21,19 +21,13 @@ const userExist = async (email) => {
     if (!email)
         return false;
     try {
-        const query = `select email from usersdata where email = $1`;
-        const data = await dbconn_1.default.query(query, [email]);
-        const dataset = data.rows[0];
-        if (dataset && dataset.email) {
-            return false;
-        }
-        else {
-            return true;
-        }
+        const query = `SELECT email FROM usersdata WHERE email = $1`;
+        const result = await dbconn_1.default.query(query, [email]);
+        return result.rows.length > 0;
     }
     catch (error) {
-        console.log("Error in userexit", error);
-        return true;
+        console.error("Error checking if user exists:", error);
+        return false;
     }
 };
 exports.userExist = userExist;

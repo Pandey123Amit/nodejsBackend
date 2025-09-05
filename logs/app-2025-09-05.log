@@ -1,0 +1,13 @@
+[2025-09-05 00:13:47] [DEBUG]: registerSubAdmin: User with this email already exists
+[2025-09-05 00:14:50] [ERROR]: registerSubAdmin error: Something worng in userModels
+[2025-09-05 12:04:19] [ERROR]: registerSubAdmin error: Something worng in userModels
+[2025-09-05 12:12:28] [ERROR]: registerSubAdmin error: Something worng in userModels
+[2025-09-05 12:13:25] [ERROR]: registerSubAdmin error: new row for relation "user_roles" violates check constraint "user_roles_role_check"
+[2025-09-05 12:38:02] [ERROR]: registerSubAdmin error: new row for relation "user_roles" violates check constraint "user_roles_role_check"
+[2025-09-05 12:52:17] [INFO]: registerSubAdmin: Sub-admin created pandey@gmail.com
+[2025-09-05 16:08:34] [DEBUG]: registerSubAdmin: User with this email already exists
+[2025-09-05 16:11:13] [ERROR]: registerSubAdmin error: column "role_id" of relation "permissions" does not exist
+[2025-09-05 16:11:28] [DEBUG]: registerSubAdmin: User with this email already exists
+[2025-09-05 16:21:06] [ERROR]: registerSubAdmin error: insert or update on table "role_permissions" violates foreign key constraint "role_permissions_role_id_fkey"
+[2025-09-05 16:24:09] [ERROR]: registerSubAdmin error: insert or update on table "role_permissions" violates foreign key constraint "role_permissions_role_id_fkey"
+[2025-09-05 16:27:31] [INFO]: registerUser: Email sent to dbsbd@gmail.com

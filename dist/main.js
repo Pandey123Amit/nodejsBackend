@@ -9,6 +9,7 @@ const dbconn_1 = require("./db/dbconn");
 const TodoRoutes_1 = __importDefault(require("./routes/TodoRoutes"));
 const UserRoutes_1 = __importDefault(require("./routes/UserRoutes"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const RestaurantsRoutes_1 = __importDefault(require("./routes/RestaurantsRoutes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = process.env.PORT || 3000;
@@ -16,6 +17,7 @@ app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
 app.use('/api/todos', TodoRoutes_1.default);
 app.use('/api/users', UserRoutes_1.default);
+app.use('/api/restaurants', RestaurantsRoutes_1.default);
 // Test DB connection, then start the server
 (0, dbconn_1.testDBConnection)()
     .then(() => {

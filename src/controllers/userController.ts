@@ -1,10 +1,11 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction, RequestHandler } from "express";
 import * as UserModel from '../model/userModel';
 import { genratedpassword, userExist, tokenGenerate, insertByColNameAndValueAndTablename } from '../utils/users';
 import { sendEmail } from '../utils/emailSend';
 import pool from '../db/dbconn';
 import { getLatLng } from '../utils/getLocation';
 import { logger } from "../utils/logger";
+import { Role } from "../constant";
 
 
 
@@ -16,7 +17,7 @@ const generatedAccessToken = async (user: number): Promise<string> => {
         throw new Error("ACCESS_TOKEN_SECRET is not defined in environment variables.");
     }
     const accessToken: string = tokenGenerate(accessTokenKey);
-    const dataset: UserModel.User = await insertByColNameAndValueAndTablename('sessions', ['access_token', 'user_id'], [accessToken, user])
+    const dataset: UserModel.User = await insertByColNameAndValueAndTablename('sessions', ['session_token', 'user_id'], [accessToken, user])
     if (!dataset) {
         throw new Error("Failed to insert session token.");
     }
@@ -24,71 +25,83 @@ const generatedAccessToken = async (user: number): Promise<string> => {
 };
 
 
-export const registerUser = async (req: Request, res: Response) => {
-    const { Fname, Lname, phonenumber, email, addLine1, addLine2, city, state, country, postal_code } = req.body
-    const isuserExist: boolean = await userExist(email)
-    // console.log(isuserexit);
+
+export const registerUser: RequestHandler = async (req, res, next): Promise<any> => {
+    const { Fname, Lname, phonenumber, email, addLine1, addLine2, city, state, country, postal_code, usertype } = req.body;
     try {
-        if (email && isuserExist) {
-            let isemail: boolean = false
-            const password: string = genratedpassword()
-            const dataset = await UserModel.register(Fname, Lname, email, phonenumber, password)
-            if (dataset) {
-                isemail = await sendEmail({
-                    from: process.env.SENDER_EMAIL,
-                    to: dataset.email,
-                    subject: 'Login Credentials',
-                    html: `<h3>Welcome, ${Fname} ${Lname}!</h3>
-                    <p>Your account has been successfully created.</p>
-                    <p><strong>Login Details:</strong></p>
-                <ul>
-                    <li><strong>User ID:</strong> ${dataset.id}</li>
-                    <li><strong>Email:</strong> ${dataset.email}</li>
-                    <li><strong>Password:</strong> ${dataset.password}</li>
-                </ul>
-                <p>Use these credentials to log in to the system.</p>`,
-                });
-            }
-            // console.log(state, postal_code, addLine1 + addLine2);
-            const address_line = addLine1 + " " + addLine2;
-            const prepareData: string = `${address_line}, ${city}, ${state}, ${country}, ${postal_code}`;
-            const location = await getLatLng(prepareData);
-
-            if (!location) {
-                console.log("Cannot insert address: no lat/lng found");
-                logger.warn("registerUser: location not fetch")
-                return; // or throw error
-            }
-
-            const datasetAddress: UserModel.Address = await insertByColNameAndValueAndTablename(
-                'addresses',
-                ['user_id', 'address_line', 'city', 'state', 'country', 'postal_code', 'latitude', 'longitude'],
-                [dataset.id, address_line, city, state, country, postal_code, location.lat, location.lng]
-            );
-
-            if (isemail && datasetAddress) {
-                console.log(dataset.id);
-                await pool.query(`UPDATE usersdata SET iscredentialssend = $2 where id=$1;`, [dataset.id, true])
-                res.json({
-                    email: dataset.email,
-                    username: dataset.username,
-                    message: "Please check Email for login Credentials"
-                });
-                logger.error("registerUser: Please check Email for login Credentials")
-                return
-            }
-
+        if (!email) {
+            logger.debug("registerUser: Email is required")
+            res.status(400).json({ message: "Email is required" });
+            return;
         }
-    } catch (err) {
-        logger.error("registerUser:",err)
-        res.json({
-            meassage: "Something Went Wrong in signup",
-            erros: err
-        })
-        return
-    }
 
-}
+        const isUserExist: boolean = await userExist(email);
+        if (isUserExist) {
+            logger.debug("registerUser: User with this email already exists")
+            res.status(400).json({ message: "User with this email already exists" });
+            return;
+        }
+
+        const password: string = genratedpassword();
+        const dataset = await UserModel.register(Fname, Lname, email, phonenumber, password, usertype);
+        const check = await insertByColNameAndValueAndTablename(
+            'user_roles',
+            ['user_id', 'role'],
+            [dataset.id, usertype]
+        );
+
+        let isEmailSent: boolean = false;
+        if (dataset) {
+            isEmailSent = await sendEmail({
+                from: process.env.SENDER_EMAIL,
+                to: dataset.email,
+                subject: 'Login Credentials',
+                html: `<h3>Welcome, ${Fname} ${Lname}!</h3>
+                       <p>Your account has been successfully created.</p>
+                       <p><strong>Login Details:</strong></p>
+                       <ul>
+                         <li><strong>User ID:</strong> ${dataset.id}</li>
+                         <li><strong>Email:</strong> ${dataset.email}</li>
+                         <li><strong>Password:</strong> ${dataset.password}</li>
+                       </ul>
+                       <p>Use these credentials to log in to the system.</p>`,
+            });
+        }
+
+        const address_line = addLine1 + " " + addLine2;
+        const prepareData: string = `${address_line}, ${city}, ${state}, ${country}, ${postal_code}`;
+        const location = await getLatLng(prepareData);
+
+        if (!location) {
+            logger.warn("registerUser: location not fetched");
+            res.status(400).json({ message: "Cannot fetch latitude/longitude for the given address" });
+            return;
+        }
+
+        const datasetAddress: UserModel.Address = await insertByColNameAndValueAndTablename(
+            'addresses',
+            ['user_id', 'address_line', 'city', 'state', 'country', 'postal_code', 'latitude', 'longitude'],
+            [dataset.id, address_line, city, state, country, postal_code, location.lat, location.lng]
+        );
+
+        if (isEmailSent && datasetAddress) {
+            await pool.query(`UPDATE usersdata SET iscredentialssend = $2 WHERE id=$1;`, [dataset.id, true]);
+            logger.info(`registerUser: Email sent to ${dataset.email}`);
+            res.status(201).json({
+                email: dataset.email,
+                username: dataset.username,
+                message: "Please check Email for login Credentials"
+            });
+            return;
+        }
+
+    } catch (err) {
+        logger.error("registerUser:", err);
+        res.status(500).json({ message: "Something went wrong during signup", error: err });
+    }
+};
+
+
 export const loginUser = async (req: Request, res: Response): Promise<any> => {
     const { email, password } = req.body;
 
@@ -109,7 +122,7 @@ export const loginUser = async (req: Request, res: Response): Promise<any> => {
                 httpOnly: true,
                 secure: true
             }
-            return res.status(200).cookie("access-token", accessTokenKey, option).json({
+            return res.status(200).cookie("token", accessTokenKey, option).json({
                 message: "Login successfullllllll",
                 user: {
                     loginUser: result.user.id,
@@ -132,7 +145,7 @@ export const loginUser = async (req: Request, res: Response): Promise<any> => {
 
 export const logout = async (req: Request, res: Response): Promise<void> => {
     const authHeader = req.headers['authorization'];
-    const token = authHeader?.split(' ')[1];
+    const token: string = authHeader as string
 
     if (!token) {
         res.status(400).json({ message: 'No token provided' });
@@ -144,7 +157,7 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
             httpOnly: true, // learn from youtube so that no third user can change or modified the cookies
             secure: true
         }
-        await pool.query('DELETE FROM sessions WHERE access_token = $1', [token]);
+        await pool.query('DELETE FROM sessions WHERE session_token = $1', [token]);
         res.clearCookie('access-token', option);
         res.status(200).json({
             message: 'Logged out successfully'
@@ -158,3 +171,83 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
         return
     }
 };
+
+
+export const registerSubAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const { Fname, Lname, email, phonenumber, addLine1, addLine2, city, state, country, postal_code, permission } = req.body;
+    let isEmailSent: boolean = false;
+
+    try {
+        if (!email) {
+            logger.debug("registerSubAdmin: Email is required");
+            res.status(400).json({ message: "Email is required" });
+            return;
+        }
+
+        const isUserExist = await userExist(email);
+        if (isUserExist) {
+            logger.debug("registerSubAdmin: User with this email already exists");
+            res.status(400).json({ message: "User with this email already exists" });
+            return;
+        }
+
+        const password = genratedpassword();
+        const dataset = await UserModel.register(Fname, Lname, email, phonenumber, password, Role.SubAdmin);
+
+
+        const roleId = await insertByColNameAndValueAndTablename('user_roles', ['user_id', 'role'], [dataset.id, Role.SubAdmin]) as { id: number };
+
+        for (const value of permission) {
+            await insertByColNameAndValueAndTablename(
+                'role_permissions',
+                ['role_id', 'permission_id'],
+                [roleId.id, value]
+            );
+        }
+
+        isEmailSent = await sendEmail({
+            from: process.env.SENDER_EMAIL,
+            to: dataset.email,
+            subject: 'Sub-admin Account Created',
+            html: `<h3>Welcome, ${Fname} ${Lname}!</h3>
+                   <p>Your sub-admin account has been created.</p>
+                   <p>Email: ${dataset.email}</p>
+                   <p>Password: ${password}</p>`
+        });
+
+        if (isEmailSent) {
+            await pool.query(`UPDATE usersdata SET iscredentialssend = $2 WHERE id=$1;`, [dataset.id, true]);
+            logger.info(`registerUser: Email sent to ${dataset.email}`);
+            res.status(201).json({
+                email: dataset.email,
+                username: dataset.username,
+                message: "Please check Email for login Credentials"
+            });
+            return;
+        }
+
+        if (addLine1 || addLine2) {
+            const addressLine = `${addLine1 || ''} ${addLine2 || ''}`.trim();
+            const fullAddress = `${addressLine}, ${city}, ${state}, ${country}, ${postal_code}`;
+            const location = await getLatLng(fullAddress);
+
+            if (location) {
+                await insertByColNameAndValueAndTablename(
+                    'addresses',
+                    ['user_id', 'address_line', 'city', 'state', 'country', 'postal_code', 'latitude', 'longitude'],
+                    [dataset.id, addressLine, city, state, country, postal_code, location.lat, location.lng]
+                );
+            } else {
+                logger.warn(`registerSubAdmin: Could not fetch location for address of user ${dataset.id}`);
+            }
+        }
+
+        logger.info(`registerSubAdmin: Sub-admin created ${dataset.email}`);
+        res.status(201).json({ message: "Sub-admin registered successfully", email: dataset.email });
+    } catch (err) {
+        logger.error("registerSubAdmin error:", err);
+        res.status(500).json({ message: "Something went wrong", error: err });
+    }
+};
+
+

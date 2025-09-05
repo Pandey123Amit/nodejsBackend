@@ -1,4 +1,5 @@
 "use strict";
+// learn form blog 
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -6,11 +7,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.logger = void 0;
 const winston_1 = __importDefault(require("winston"));
 require("winston-daily-rotate-file");
-const logDir = "logs"; // folder to store logs
+const logDir = "logs";
 const transport = new winston_1.default.transports.DailyRotateFile({
     filename: `${logDir}/app-%DATE%.log`,
     datePattern: "YYYY-MM-DD",
-    maxFiles: "14d", // keep logs for 14 days
+    maxFiles: "14d",
     zippedArchive: true
 });
 exports.logger = winston_1.default.createLogger({

@@ -1,1 +1,9 @@
 [2025-09-04 18:51:53] [ERROR]: registerUser: Please check Email for login Credentials
+[2025-09-04 20:22:24] [ERROR]: registerUser: Something worng in userModels
+[2025-09-04 20:22:57] [ERROR]: registerUser: Something worng in userModels
+[2025-09-04 20:23:30] [ERROR]: registerUser: Something worng in userModels
+[2025-09-04 20:23:53] [ERROR]: registerUser: Something worng in userModels
+[2025-09-04 20:25:11] [ERROR]: registerUser: Something worng in userModels
+[2025-09-04 20:29:07] [ERROR]: registerUser: Something worng in userModels
+[2025-09-04 20:31:38] [DEBUG]: registerUser: User with this email already exists
+[2025-09-04 20:35:53] [INFO]: registerUser: Email sent to amitncjjdj@yopmail.com

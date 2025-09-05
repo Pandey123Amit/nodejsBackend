@@ -15,23 +15,19 @@ export const genratedpassword = ():string =>{
     return password
 }
 
-export const userExist = async (email:string):Promise<boolean> => {
-    if(!email) return false;
-        try {
-            const query = `select email from usersdata where email = $1`
-            const data = await pool.query(query,[email]) 
-            const dataset:User = data.rows[0]
-            if(dataset && dataset.email){
-                return false
-            }
-            else{
-                return true
-            }
-        } catch (error) {
-            console.log("Error in userexit",error);
-            return true
-        }
-    };
+export const userExist = async (email: string): Promise<boolean> => {
+    if (!email) return false; 
+    try {
+        const query = `SELECT email FROM usersdata WHERE email = $1`;
+        const result = await pool.query(query, [email]);
+
+        return result.rows.length > 0; 
+    } catch (error) {
+        console.error("Error checking if user exists:", error);
+        return false; 
+    }
+};
+
 
 export const tokenGenerate = (key:string) => {
     return Buffer.from(randomBytes(key.length)).toString('hex'); //stackoverflow

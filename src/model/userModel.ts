@@ -34,11 +34,11 @@ export interface Address {
 }
 
 
-export const register = async (Fname: string, Lname: string, email: string, phonenumber: number, password: string): Promise<User> => {
-    const query = `INSERT INTO usersdata(Fname,Lname,username,phonenumber,email,password) 
-                    values($1,$2,$3,$4,$5,$6) RETURNING *;`
+export const register = async (Fname: string, Lname: string, email: string, phonenumber: number, password: string,usertype:string): Promise<User> => {
+    const query = `INSERT INTO usersdata(Fname,Lname,username,phonenumber,email,password,usertype) 
+                    values($1,$2,$3,$4,$5,$6,$7) RETURNING *;`
     try {
-        const dataset = await pool.query(query, [Fname, Lname, email.split('@')[0], phonenumber, email, password])
+        const dataset = await pool.query(query, [Fname, Lname, email.split('@')[0], phonenumber, email, password,usertype])
         return dataset.rows[0]
 
     } catch (err) {

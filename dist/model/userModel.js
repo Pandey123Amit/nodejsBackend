@@ -5,11 +5,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.findById = exports.checkCredentails = exports.register = void 0;
 const dbconn_1 = __importDefault(require("../db/dbconn"));
-const register = async (Fname, Lname, email, phonenumber, password) => {
-    const query = `INSERT INTO usersdata(Fname,Lname,username,phonenumber,email,password) 
-                    values($1,$2,$3,$4,$5,$6) RETURNING *;`;
+const register = async (Fname, Lname, email, phonenumber, password, usertype) => {
+    const query = `INSERT INTO usersdata(Fname,Lname,username,phonenumber,email,password,usertype) 
+                    values($1,$2,$3,$4,$5,$6,$7) RETURNING *;`;
     try {
-        const dataset = await dbconn_1.default.query(query, [Fname, Lname, email.split('@')[0], phonenumber, email, password]);
+        const dataset = await dbconn_1.default.query(query, [Fname, Lname, email.split('@')[0], phonenumber, email, password, usertype]);
         return dataset.rows[0];
     }
     catch (err) {

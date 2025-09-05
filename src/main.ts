@@ -4,6 +4,7 @@ import pool, { testDBConnection } from './db/dbconn';
 import todoRoutes from './routes/TodoRoutes';
 import UserRoutes from "./routes/UserRoutes"
 import cookieParser from 'cookie-parser'; 
+import  RestaurantsRoutes  from './routes/RestaurantsRoutes';
 
 
 
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use(cookieParser()); 
 app.use('/api/todos', todoRoutes);
 app.use('/api/users',UserRoutes);
+app.use('/api/restaurants',RestaurantsRoutes)
 
 // Test DB connection, then start the server
 testDBConnection()

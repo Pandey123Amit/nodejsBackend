@@ -1,12 +1,15 @@
+// learn form blog 
+
+
 import winston from "winston";
 import "winston-daily-rotate-file";
 
-const logDir = "logs"; // folder to store logs
+const logDir = "logs"; 
 
 const transport = new winston.transports.DailyRotateFile({
   filename: `${logDir}/app-%DATE%.log`,
   datePattern: "YYYY-MM-DD",
-  maxFiles: "14d", // keep logs for 14 days
+  maxFiles: "14d", 
   zippedArchive: true
 });
 
