@@ -32,7 +32,7 @@ class RestaurantModel {
     }
     // Fetch all restaurants (Admin can see all)
     static async getAll() {
-        const result = await dbconn_1.default.query(`SELECT * FROM restaurants ORDER BY created_at DESC;`);
+        const result = await dbconn_1.default.query(`select id,name,CONCAT_WS(', ', address, city, state, country, postal_code) as address , phone_number,latitude,longitude from restaurants;`);
         return result.rows;
     }
     // Fetch restaurants by owner (sub-admin sees only his/her restaurants)
@@ -44,6 +44,22 @@ class RestaurantModel {
     static async getById(id) {
         const result = await dbconn_1.default.query(`SELECT * FROM restaurants WHERE id = $1;`, [id]);
         return result.rows[0] || null;
+    }
+    // dishes by restaurant
+    static async getByOwnerId(id) {
+        const result = await dbconn_1.default.query(`SELECT
+          r.name AS restaurant_name,
+          CONCAT(r.address, ', ', r.city, ', ', r.postal_code) AS restaurant_address,
+          r.phone_number,
+          d.name AS dish_name,
+          d.description,
+          d.price
+      FROM restaurants r  
+      LEFT JOIN dishes d
+          ON d.restaurant_id = r.id   
+      WHERE r.owner_id = $1
+        AND (d.is_available = true OR d.is_available = true);`, [id]);
+        return result.rows || null;
     }
     // Delete restaurant
     static async delete(id, ownerId) {

@@ -7,23 +7,23 @@ exports.DishModel = void 0;
 const dbconn_1 = __importDefault(require("../db/dbconn"));
 class DishModel {
     // Create dish
-    static async create(data) {
+    static async createDish(dish) {
         var _a;
-        const query = `
-      INSERT INTO dishes (restaurant_id, name, description, price, is_available, created_by)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING *;
-    `;
-        const values = [
-            data.restaurant_id,
-            data.name,
-            data.description || null,
-            data.price,
-            (_a = data.is_available) !== null && _a !== void 0 ? _a : true,
-            data.created_by
-        ];
-        const result = await dbconn_1.default.query(query, values);
+        const result = await dbconn_1.default.query(`INSERT INTO dishes (restaurant_id, name, description, price, is_available, created_by)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING *`, [
+            dish.restaurant_id,
+            dish.name,
+            dish.description,
+            dish.price,
+            (_a = dish.is_available) !== null && _a !== void 0 ? _a : true,
+            dish.created_by,
+        ]);
         return result.rows[0];
+    }
+    static async getDishesByRestaurant(restaurantId) {
+        const result = await dbconn_1.default.query(`SELECT * FROM dishes WHERE restaurant_id = $1`, [restaurantId]);
+        return result.rows;
     }
     // Get all dishes for a restaurant
     static async getByRestaurant(restaurantId) {

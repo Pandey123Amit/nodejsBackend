@@ -12,9 +12,18 @@ export interface Restaurant {
   latitude?: number;
   longitude?: number;
   created_at?: Date;
-  owner_id: number; 
+  owner_id: number;
 }
 
+export interface RestaurantWithDishes {
+  restaurant_id: number;
+  restaurant_name: string;
+  restaurant_address: string;
+  phone_number?: string;
+  dish_name?: string;
+  description?: string;
+  price?: number;
+}
 export class RestaurantModel {
   // Create restaurant
   static async createRestaurant(data: Restaurant): Promise<Restaurant> {
@@ -45,7 +54,7 @@ export class RestaurantModel {
 
   // Fetch all restaurants (Admin can see all)
   static async getAll(): Promise<Restaurant[]> {
-    const result = await pool.query(`SELECT * FROM restaurants ORDER BY created_at DESC;`);
+    const result = await pool.query(`select id,name,CONCAT_WS(', ', address, city, state, country, postal_code) as address , phone_number,latitude,longitude from restaurants;`);
     return result.rows;
   }
 
@@ -60,9 +69,25 @@ export class RestaurantModel {
     const result = await pool.query(`SELECT * FROM restaurants WHERE id = $1;`, [id]);
     return result.rows[0] || null;
   }
+  // dishes by restaurant
+  static async getByOwnerId(id: number): Promise<RestaurantWithDishes[] | null> {
+    const result = await pool.query(`SELECT
+          r.name AS restaurant_name,
+          CONCAT(r.address, ', ', r.city, ', ', r.postal_code) AS restaurant_address,
+          r.phone_number,
+          d.name AS dish_name,
+          d.description,
+          d.price
+      FROM restaurants r  
+      LEFT JOIN dishes d
+          ON d.restaurant_id = r.id   
+      WHERE r.owner_id = $1
+        AND (d.is_available = true OR d.is_available = true);`, [id]);
+    return result.rows || null;
+  }
 
   // Delete restaurant
-  static async delete(id: number, ownerId?: number): Promise<boolean | null>  {
+  static async delete(id: number, ownerId?: number): Promise<boolean | null> {
     let query = `DELETE FROM restaurants WHERE id = $1`;
     let params: any[] = [id];
 
@@ -73,6 +98,6 @@ export class RestaurantModel {
     }
 
     const result = await pool.query(query, params);
-    return result.rowCount as number > 0 
+    return result.rowCount as number > 0
   }
 }

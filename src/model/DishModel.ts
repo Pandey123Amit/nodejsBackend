@@ -13,24 +13,29 @@ export interface Dish {
 
 export class DishModel {
   // Create dish
-  static async create(data: Dish): Promise<Dish> {
-    const query = `
-      INSERT INTO dishes (restaurant_id, name, description, price, is_available, created_by)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING *;
-    `;
+ static async createDish(dish: Dish): Promise<Dish> {
+  const result = await pool.query(
+    `INSERT INTO dishes (restaurant_id, name, description, price, is_available, created_by)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING *`,
+    [
+      dish.restaurant_id,
+      dish.name,
+      dish.description,
+      dish.price,
+      dish.is_available ?? true,
+      dish.created_by,
+    ]
+  );
+  return result.rows[0];
+}
 
-    const values = [
-      data.restaurant_id,
-      data.name,
-      data.description || null,
-      data.price,
-      data.is_available ?? true,
-      data.created_by
-    ];
-
-    const result = await pool.query(query, values);
-    return result.rows[0];
+  static async getDishesByRestaurant(restaurantId: number): Promise<Dish[]> {
+    const result = await pool.query(
+      `SELECT * FROM dishes WHERE restaurant_id = $1`,
+      [restaurantId]
+    );
+    return result.rows;
   }
 
   // Get all dishes for a restaurant

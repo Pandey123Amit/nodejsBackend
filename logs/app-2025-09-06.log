@@ -1,0 +1,4 @@
+[2025-09-06 15:24:24] [DEBUG]: registerUser: User with this email already exists
+[2025-09-06 15:24:36] [ERROR]: registerUser: Something worng in userModels
+[2025-09-06 15:24:53] [INFO]: registerUser: Email sent to kushpande2222y@gmail.com
+[2025-09-06 15:33:12] [DEBUG]: registerUser: User with this email already exists

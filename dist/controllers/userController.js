@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.registerSubAdmin = exports.logout = exports.loginUser = exports.registerUser = void 0;
+exports.getAllSubAdmins = exports.getAllRestaurants = exports.registerSubAdmin = exports.logout = exports.loginUser = exports.registerUser = void 0;
 const UserModel = __importStar(require("../model/userModel"));
 const users_1 = require("../utils/users");
 const emailSend_1 = require("../utils/emailSend");
@@ -44,6 +44,8 @@ const dbconn_1 = __importDefault(require("../db/dbconn"));
 const getLocation_1 = require("../utils/getLocation");
 const logger_1 = require("../utils/logger");
 const constant_1 = require("../constant");
+const RestaurantsModel_1 = require("../model/RestaurantsModel");
+const distanceFormula_1 = require("../utils/distanceFormula");
 const generatedAccessToken = async (user) => {
     const accessTokenKey = process.env.ACCESS_TOKEN_SECRET;
     if (!accessTokenKey) {
@@ -58,6 +60,10 @@ const generatedAccessToken = async (user) => {
 };
 const registerUser = async (req, res, next) => {
     const { Fname, Lname, phonenumber, email, addLine1, addLine2, city, state, country, postal_code, usertype } = req.body;
+    if (!(usertype === constant_1.Role.Admin || usertype === constant_1.Role.SubAdmin || usertype === constant_1.Role.User)) {
+        res.status(400).json({ message: "Usertype not match" });
+        return;
+    }
     try {
         if (!email) {
             logger_1.logger.debug("registerUser: Email is required");
@@ -197,7 +203,7 @@ const registerSubAdmin = async (req, res, next) => {
             return;
         }
         const password = (0, users_1.genratedpassword)();
-        const dataset = await UserModel.register(Fname, Lname, email, phonenumber, password, constant_1.Role.SubAdmin);
+        const dataset = await UserModel.register(Fname, Lname, email, phonenumber, password, permission.length > 0 ? constant_1.Role.SubAdmin : constant_1.Role.User);
         const roleId = await (0, users_1.insertByColNameAndValueAndTablename)('user_roles', ['user_id', 'role'], [dataset.id, constant_1.Role.SubAdmin]);
         for (const value of permission) {
             await (0, users_1.insertByColNameAndValueAndTablename)('role_permissions', ['role_id', 'permission_id'], [roleId.id, value]);
@@ -241,4 +247,67 @@ const registerSubAdmin = async (req, res, next) => {
     }
 };
 exports.registerSubAdmin = registerSubAdmin;
+const getAllRestaurants = async (req, res) => {
+    var _a, _b;
+    const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+    const rolecheck = (_b = req === null || req === void 0 ? void 0 : req.user) === null || _b === void 0 ? void 0 : _b.roles[0];
+    try {
+        const dataset = await RestaurantsModel_1.RestaurantModel.getAll();
+        const userinfo = await UserModel.findById(userId);
+        if (!userinfo) {
+            res.status(404).json({ success: false, message: "User not found" });
+            return;
+        }
+        if (rolecheck === constant_1.Role.User) {
+            const userLat = userinfo.latitude;
+            const userLng = userinfo.longitude;
+            const restaurantsWithDistance = dataset.map((restaurant) => (Object.assign(Object.assign({}, restaurant), { distance_km: (0, distanceFormula_1.haversineformula)(userLat, userLng, Number(restaurant.latitude), Number(restaurant.longitude)).toFixed(2) })));
+            res.status(200).json({
+                success: true,
+                message: "All Restaurants with distance from user location",
+                data: {
+                    user: userinfo,
+                    restaurants: restaurantsWithDistance
+                }
+            });
+            return;
+        }
+        else {
+            res.status(200).json({
+                success: true,
+                message: "All Restaurants",
+                data: {
+                    user: userinfo,
+                    restaurants: dataset
+                }
+            });
+        }
+    }
+    catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Something went wrong while fetching data",
+            error: error instanceof Error ? error.message : error,
+        });
+    }
+};
+exports.getAllRestaurants = getAllRestaurants;
+const getAllSubAdmins = async (req, res) => {
+    try {
+        const result = await UserModel.getAllSubAdmin();
+        res.status(200).json({
+            success: true,
+            subAdmins: result
+        });
+    }
+    catch (error) {
+        console.error('getAllSubAdmins error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch sub-admins',
+            error: error instanceof Error ? error.message : error
+        });
+    }
+};
+exports.getAllSubAdmins = getAllSubAdmins;
 //# sourceMappingURL=userController.js.map

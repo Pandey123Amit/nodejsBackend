@@ -6,6 +6,12 @@ import pool from '../db/dbconn';
 import { getLatLng } from '../utils/getLocation';
 import { logger } from "../utils/logger";
 import { Role } from "../constant";
+import { RestaurantModel } from "../model/RestaurantsModel";
+import { AuthenticatedRequest } from "../middlewares/auth.middelwarePermission";
+import { haversineformula } from "../utils/distanceFormula";
+import { AuthenticatedRequest as RoleCheckAuticatedRequest } from "../middlewares/auth.rolecheck";
+
+import { log } from "winston";
 
 
 
@@ -28,6 +34,11 @@ const generatedAccessToken = async (user: number): Promise<string> => {
 
 export const registerUser: RequestHandler = async (req, res, next): Promise<any> => {
     const { Fname, Lname, phonenumber, email, addLine1, addLine2, city, state, country, postal_code, usertype } = req.body;
+    if (!(usertype === Role.Admin || usertype === Role.SubAdmin || usertype === Role.User)) {
+        res.status(400).json({ message: "Usertype not match" });
+        return;
+    }
+
     try {
         if (!email) {
             logger.debug("registerUser: Email is required")
@@ -192,7 +203,7 @@ export const registerSubAdmin = async (req: Request, res: Response, next: NextFu
         }
 
         const password = genratedpassword();
-        const dataset = await UserModel.register(Fname, Lname, email, phonenumber, password, Role.SubAdmin);
+        const dataset = await UserModel.register(Fname, Lname, email, phonenumber, password, permission.length > 0 ? Role.SubAdmin : Role.User);
 
 
         const roleId = await insertByColNameAndValueAndTablename('user_roles', ['user_id', 'role'], [dataset.id, Role.SubAdmin]) as { id: number };
@@ -249,5 +260,74 @@ export const registerSubAdmin = async (req: Request, res: Response, next: NextFu
         res.status(500).json({ message: "Something went wrong", error: err });
     }
 };
+
+export const getAllRestaurants = async (req: RoleCheckAuticatedRequest, res: Response): Promise<void> => {
+    const userId = req.user?.id as number;
+    const rolecheck = req?.user?.roles[0] as string;
+    try {
+        const dataset = await RestaurantModel.getAll()
+        const userinfo = await UserModel.findById(userId);
+
+        if (!userinfo) {
+            res.status(404).json({ success: false, message: "User not found" });
+            return;
+        }
+        if (rolecheck === Role.User) {
+            const userLat = userinfo.latitude as number;
+            const userLng = userinfo.longitude as number;
+            const restaurantsWithDistance = dataset.map((restaurant: any) => ({
+                ...restaurant,
+                distance_km: haversineformula(userLat, userLng, Number(restaurant.latitude), Number(restaurant.longitude)).toFixed(2)
+            }));
+            res.status(200).json({
+                success: true,
+                message: "All Restaurants with distance from user location",
+                data: {
+                    user: userinfo,
+                    restaurants: restaurantsWithDistance
+                }
+            });
+            return
+        } else {
+            res.status(200).json({
+                success: true,
+                message: "All Restaurants",
+                data: {
+                    user: userinfo,
+                    restaurants: dataset
+                }
+            });
+        }
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Something went wrong while fetching data",
+            error: error instanceof Error ? error.message : error,
+        });
+    }
+};
+
+
+export const getAllSubAdmins = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const result = await UserModel.getAllSubAdmin()
+
+        res.status(200).json({
+            success: true,
+            subAdmins: result
+        });
+    } catch (error) {
+        console.error('getAllSubAdmins error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch sub-admins',
+            error: error instanceof Error ? error.message : error
+        });
+    }
+};
+
+
+
 
 

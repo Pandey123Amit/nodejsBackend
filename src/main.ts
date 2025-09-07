@@ -5,6 +5,8 @@ import todoRoutes from './routes/TodoRoutes';
 import UserRoutes from "./routes/UserRoutes"
 import cookieParser from 'cookie-parser'; 
 import  RestaurantsRoutes  from './routes/RestaurantsRoutes';
+import  DishesRoutes  from './routes/DishesRoutes';
+
 
 
 
@@ -17,6 +19,8 @@ app.use(cookieParser());
 app.use('/api/todos', todoRoutes);
 app.use('/api/users',UserRoutes);
 app.use('/api/restaurants',RestaurantsRoutes)
+app.use('/api/dishes',DishesRoutes)
+
 
 // Test DB connection, then start the server
 testDBConnection()

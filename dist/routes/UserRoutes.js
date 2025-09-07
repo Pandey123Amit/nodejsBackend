@@ -12,6 +12,9 @@ const router = express_1.default.Router();
 router.post('/signup', userController_1.registerUser);
 router.post('/logout', auth_middelware_1.verifyToken, userController_1.logout);
 router.post('/login', userController_1.loginUser);
+router.get('/get-sub-admin', auth_middelware_1.verifyToken, (0, auth_rolecheck_1.checkRole)([constant_1.Role.Admin]), userController_1.getAllSubAdmins);
 router.post('/sub-admin', auth_middelware_1.verifyToken, (0, auth_rolecheck_1.checkRole)([constant_1.Role.Admin]), userController_1.registerSubAdmin);
+router.post('/sub-admin', auth_middelware_1.verifyToken, (0, auth_rolecheck_1.checkRole)([constant_1.Role.Admin, constant_1.Role.SubAdmin]), userController_1.registerSubAdmin);
+router.get('/restaurant', auth_middelware_1.verifyToken, userController_1.getAllRestaurants);
 exports.default = router;
 //# sourceMappingURL=UserRoutes.js.map

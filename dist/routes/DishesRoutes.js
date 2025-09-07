@@ -4,11 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const auth_middelware_1 = require("../middlewares/auth.middelware");
 const auth_middelwarePermission_1 = require("../middlewares/auth.middelwarePermission");
 const RestaurantsControllers_1 = require("../controllers/RestaurantsControllers");
 const router = express_1.default.Router();
-router.post('/create-restaurant', (0, auth_middelwarePermission_1.checkPermission)("CREATE_RESTAURANT"), RestaurantsControllers_1.createRestaurant);
-router.get('/get-dish', auth_middelware_1.verifyToken, RestaurantsControllers_1.getAllDishesByResutaurants);
+router.post('/:restaurantId/add', (0, auth_middelwarePermission_1.checkPermission)("CREATE_DISH"), RestaurantsControllers_1.addDish);
 exports.default = router;
-//# sourceMappingURL=RestaurantsRoutes.js.map
+//# sourceMappingURL=DishesRoutes.js.map

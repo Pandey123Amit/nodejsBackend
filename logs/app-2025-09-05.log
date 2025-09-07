@@ -11,3 +11,7 @@
 [2025-09-05 16:21:06] [ERROR]: registerSubAdmin error: insert or update on table "role_permissions" violates foreign key constraint "role_permissions_role_id_fkey"
 [2025-09-05 16:24:09] [ERROR]: registerSubAdmin error: insert or update on table "role_permissions" violates foreign key constraint "role_permissions_role_id_fkey"
 [2025-09-05 16:27:31] [INFO]: registerUser: Email sent to dbsbd@gmail.com
+[2025-09-05 16:38:14] [INFO]: registerUser: Email sent to kushpandey@gmail.com
+[2025-09-05 17:37:45] [INFO]: registerUser: Email sent to dbs111@gmail.com
+[2025-09-05 17:38:01] [DEBUG]: registerSubAdmin: User with this email already exists
+[2025-09-05 17:38:12] [INFO]: registerUser: Email sent to d11@gmail.com
