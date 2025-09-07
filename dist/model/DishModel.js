@@ -43,6 +43,7 @@ class DishModel {
             query += ` AND created_by = $2`;
             params.push(createdBy);
         }
+        console.log(query, params);
         const result = await dbconn_1.default.query(query, params);
         return result.rowCount > 0;
     }

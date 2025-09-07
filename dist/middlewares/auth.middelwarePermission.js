@@ -27,9 +27,10 @@ const checkPermission = (permission) => {
             }
             const roleIds = roleResult.rows.map(r => r.id);
             // fetch permissions for those roles
-            const permResult = await dbconn_1.default.query(`SELECT p.name 
+            const permResult = await dbconn_1.default.query(`SELECT p.name,ur.role 
                  FROM role_permissions rp
                  JOIN permissions p ON rp.permission_id = p.id
+                 JOIN user_roles ur on ur.id = rp.role_id
                  WHERE rp.role_id = ANY($1::int[])`, [roleIds]);
             const userPermissions = permResult.rows.map(p => p.name);
             if (!userPermissions.includes(permission)) {

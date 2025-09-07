@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllDishesByResutaurants = exports.addDish = exports.createRestaurant = void 0;
+exports.deleteDish = exports.getAllDishesByResutaurants = exports.addDish = exports.createRestaurant = void 0;
 const getLocation_1 = require("../utils/getLocation");
 const logger_1 = require("../utils/logger");
 const RestaurantsModel_1 = require("../model/RestaurantsModel");
@@ -110,4 +110,22 @@ const getAllDishesByResutaurants = async (req, res) => {
     }
 };
 exports.getAllDishesByResutaurants = getAllDishesByResutaurants;
+const deleteDish = async (req, res) => {
+    var _a;
+    const dishId = parseInt(req.params.dishId, 10);
+    const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+    try {
+        const success = await DishModel_1.DishModel.delete(dishId, userId);
+        if (!success) {
+            res.status(403).json({ message: "You are not authorized to delete this dish" });
+            return;
+        }
+        res.status(200).json({ message: "Dish deleted successfully" });
+    }
+    catch (error) {
+        res.status(500).json({ message: "Error deleting dish", error });
+    }
+    return;
+};
+exports.deleteDish = deleteDish;
 //# sourceMappingURL=RestaurantsControllers.js.map

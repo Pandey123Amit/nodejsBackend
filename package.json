@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "main.js",
   "scripts": {
-    "start": "tsc && node dist/main.js"
+    "start": "tsc && node dist/main.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/main.ts"
   },
   "keywords": [],
   "author": "",
@@ -29,6 +30,7 @@
     "express": "^5.1.0",
     "node-geocoder": "^4.4.1",
     "nodemailer": "^7.0.4",
+    "nodemon": "^3.1.10",
     "pg": "^8.16.3",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0"

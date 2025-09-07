@@ -1,3 +1,4 @@
+import { Role } from "../constant";
 import pool from "../db/dbconn";
 
 export interface Restaurant {
@@ -70,21 +71,32 @@ export class RestaurantModel {
     return result.rows[0] || null;
   }
   // dishes by restaurant
-  static async getByOwnerId(id: number): Promise<RestaurantWithDishes[] | null> {
-    const result = await pool.query(`SELECT
-          r.name AS restaurant_name,
-          CONCAT(r.address, ', ', r.city, ', ', r.postal_code) AS restaurant_address,
-          r.phone_number,
-          d.name AS dish_name,
-          d.description,
-          d.price
-      FROM restaurants r  
-      LEFT JOIN dishes d
-          ON d.restaurant_id = r.id   
-      WHERE r.owner_id = $1
-        AND (d.is_available = true OR d.is_available = true);`, [id]);
+static async getByOwnerId(id: number, roleType: string): Promise<RestaurantWithDishes[] | null> {
+    let query = `
+        SELECT
+            r.name AS restaurant_name,
+            CONCAT(r.address, ', ', r.city, ', ', r.postal_code) AS restaurant_address,
+            r.phone_number,
+            d.name AS dish_name,
+            d.description,
+            d.price
+        FROM restaurants r  
+        LEFT JOIN dishes d
+            ON d.restaurant_id = r.id AND d.is_available = true
+    `;
+
+    const params: any[] = [];
+
+    if (roleType === Role.SubAdmin) {
+        query += ` WHERE r.owner_id = $1`;
+        params.push(id);
+    }
+
+    const result = await pool.query(query, params);
+
     return result.rows || null;
-  }
+}
+
 
   // Delete restaurant
   static async delete(id: number, ownerId?: number): Promise<boolean | null> {
