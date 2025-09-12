@@ -10,8 +10,10 @@ import { RestaurantModel } from "../model/RestaurantsModel";
 import { AuthenticatedRequest } from "../middlewares/auth.middelwarePermission";
 import { haversineformula } from "../utils/distanceFormula";
 import { AuthenticatedRequest as RoleCheckAuticatedRequest } from "../middlewares/auth.rolecheck";
+// import { Kafka } from "kafkajs";
+// const kafka = new Kafka({ clientId: "rms-app", brokers: ["localhost:9092"] });
+// const producer = kafka.producer();
 
-import { log } from "winston";
 
 
 
@@ -115,7 +117,7 @@ export const registerUser: RequestHandler = async (req, res, next): Promise<any>
 
 export const loginUser = async (req: Request, res: Response): Promise<any> => {
     const { email, password } = req.body;
-
+    // await producer.connect();
     if (!email || !password) {
         return res.status(400).json({
             message: "Missing credentials. Please provide email and password.",
@@ -125,6 +127,11 @@ export const loginUser = async (req: Request, res: Response): Promise<any> => {
     try {
         const result = await UserModel.checkCredentails(email, password);
         console.log(result);
+        // await producer.send({
+        //     topic: "subadmin_login01",
+        //     messages: [{ value: JSON.stringify({ event: "subadmin_login", email: "test@subadmin.com", time: new Date().toISOString() }) }],
+        // });
+
 
         if (result.success && result.user) {
             const accessTokenKey: string = await generatedAccessToken(result.user.id);
@@ -147,8 +154,9 @@ export const loginUser = async (req: Request, res: Response): Promise<any> => {
         });
 
     } catch (err) {
+        console.log("err")
         return res.status(500).json({
-            message: "Something went wrong during login",
+            message: "Something went wrong",
             error: err,
         });
     }
