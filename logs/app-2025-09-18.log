@@ -1,0 +1,18 @@
+[2025-09-18 14:52:43] [ERROR]: registerUser: (0 , users_1.genratedpassword) is not a function
+[2025-09-18 14:52:54] [ERROR]: registerUser: (0 , users_1.genratedpassword) is not a function
+[2025-09-18 14:53:26] [ERROR]: registerUser: (0 , users_1.genratedpassword) is not a function
+[2025-09-18 14:53:38] [ERROR]: registerUser: (0 , users_1.genratedpassword) is not a function
+[2025-09-18 14:53:40] [ERROR]: registerUser: (0 , users_1.genratedpassword) is not a function
+[2025-09-18 14:54:02] [ERROR]: registerUser: (0 , users_1.genratedpassword) is not a function
+[2025-09-18 14:54:03] [ERROR]: registerUser: (0 , users_1.genratedpassword) is not a function
+[2025-09-18 15:00:34] [INFO]: registerUser: Email sent to hpan5dd5d099e2244222y@gmail.com
+[2025-09-18 15:01:05] [DEBUG]: registerUser: User with this email already exists
+[2025-09-18 15:01:30] [ERROR]: registerUser: Something worng in userModels
+[2025-09-18 15:02:35] [INFO]: registerUser: Email sent to hpan5dd500d099e2244222y@gmail.com
+[2025-09-18 15:03:00] [INFO]: registerUser: Email sent to hpy1123@gmail.com
+[2025-09-18 15:08:17] [DEBUG]: registerUser: User with this email already exists
+[2025-09-18 15:15:16] [INFO]: registerUser: Email sent to aaaa@yopmail.com
+[2025-09-18 15:16:13] [ERROR]: registerUser: Something worng in userModels
+[2025-09-18 15:18:41] [INFO]: registerUser: Email sent to aaa@yopmail.com
+[2025-09-18 15:20:41] [DEBUG]: registerUser: User with this email already exists
+[2025-09-18 15:20:53] [INFO]: registerUser: Email sent to aaaaa@yopmail.com

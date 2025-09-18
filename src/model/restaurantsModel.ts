@@ -8,20 +8,20 @@ export interface Restaurant {
   city?: string;
   state?: string;
   country?: string;
-  postal_code?: string;
-  phone_number?: string;
+  postalCode?: string;
+  phoneNumber?: string;
   latitude?: number;
   longitude?: number;
-  created_at?: Date;
-  owner_id: number;
+  createdAt?: Date;
+  ownerId: number;
 }
 
 export interface RestaurantWithDishes {
-  restaurant_id: number;
-  restaurant_name: string;
-  restaurant_address: string;
-  phone_number?: string;
-  dish_name?: string;
+  restaurantId: number;
+  restaurantName: string;
+  restaurantAddress: string;
+  phoneNumber?: string;
+  dishName?: string;
   description?: string;
   price?: number;
 }
@@ -42,11 +42,11 @@ export class RestaurantModel {
       data.city || null,
       data.state || null,
       data.country || null,
-      data.postal_code || null,
-      data.phone_number || null,
+  data.postalCode || null,
+  data.phoneNumber || null,
       data.latitude || null,
       data.longitude || null,
-      data.owner_id
+  data.ownerId
     ];
 
     const result = await pool.query(query, values);
@@ -94,7 +94,15 @@ static async getByOwnerId(id: number, roleType: string): Promise<RestaurantWithD
 
     const result = await pool.query(query, params);
 
-    return result.rows || null;
+    return result.rows.map(row => ({
+    restaurantId: row.restaurant_id,
+    restaurantName: row.restaurant_name,
+    restaurantAddress: row.restaurant_address,
+    phoneNumber: row.phone_number,
+    dishName: row.dish_name,
+    description: row.description,
+    price: row.price
+}));
 }
 
 

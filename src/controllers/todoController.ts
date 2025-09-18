@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import * as todoModel from '../model/TodoModel';
+import * as todoModel from '../model/todoModel';
 import { sendEmail } from '../utils/emailSend';
 import pool from '../db/dbconn';
 
@@ -30,19 +30,16 @@ export const getTodo = async (req: Request, res: Response) => {
   if (!todo?.completed) {
     const isemail: boolean = await sendEmail({
       from: process.env.SENDER_EMAIL,
-      to: todo?.emailid,
+      to: todo?.emailId,
       subject: 'Pending Todo',
       html: '<p>This is an Pending todo</p>'
     });
     if (isemail) {
       const query: string = `UPDATE todo SET isemailsend = $1 WHERE id = $2`
-      // console.log(tomail.id);
       await pool.query(query, [true, todo?.id])
     }
   }
   console.log(todo);
-
-  // console.log(isemail);
 
   if (!todo) {
     res.status(404).json({ message: 'Not found' });
@@ -56,7 +53,7 @@ export const getTodo = async (req: Request, res: Response) => {
 
 export const addTodo = async (req: Request, res: Response) => {
   console.log(req.body.title);
-  const todo = await todoModel.createTodo(req.body.title, req.body.emailid);
+  const todo = await todoModel.createTodo(req.body.title, req.body.emailId);
   res.status(201).json(todo);
 };
 
@@ -73,7 +70,7 @@ export const updateTodo = async (req: Request, res: Response) => {
       const queryResponseData: todoModel.Todo & content = queryResponse.rows[0]
       const checkforemail: boolean = await sendEmail({
         from: process.env.SENDER_EMAIL,
-        to: queryResponseData.emailid,
+        to: queryResponseData.emailId,
         subject: queryResponseData.subject,
         html: queryResponseData.body
       });
@@ -97,16 +94,14 @@ export const updateTodo = async (req: Request, res: Response) => {
 
 export const deleteTodo = async (req: Request, res: Response) => {
   const data = await todoModel.getTodoById(Number(req.params.id));
-  // console.log(data?.emailid);
   const issuccess: boolean = await todoModel.deleteTodo(Number(req.params.id));
   if (issuccess) {
-    // console.log(data);
     const queryForEmail: string = `SELECT * from emailcontent where isdeleted = 1`
     const emailcontentquery = await pool.query(queryForEmail)
     const emailcontent: content = emailcontentquery.rows[0]
     const isemail: boolean = await sendEmail({
       from: process.env.SENDER_EMAIL,
-      to: data?.emailid,
+      to: data?.emailId,
       subject: emailcontent.subject,
       html: emailcontent.body
     });

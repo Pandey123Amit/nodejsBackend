@@ -31,7 +31,7 @@ export const verifyToken = async (
         const session = sessionResult.rows[0];
 
         if (!session) {
-            res.status(403).json({ message: 'Invalid token' });
+            res.status(401).json({ message: 'Invalid token' });
             return;
         }
 

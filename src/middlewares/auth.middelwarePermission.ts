@@ -37,7 +37,7 @@ export const checkPermission = (requiredPermission: string) => {
             const roleResult = await pool.query(
                 `SELECT id, role FROM user_roles WHERE user_id = $1`,
                 [userId]
-            );
+            );6
 
             if (roleResult.rowCount === 0) {
                  res.status(403).json({ message: "User has no roles assigned" });
@@ -47,7 +47,6 @@ export const checkPermission = (requiredPermission: string) => {
             const roleIds = roleResult.rows.map(r => r.id);
             const userRole = roleResult.rows[0].role;
 
-            // Fetch permissions associated with roles
             const permResult = await pool.query(
                 `SELECT p.name FROM role_permissions rp
                  JOIN permissions p ON rp.permission_id = p.id

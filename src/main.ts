@@ -1,11 +1,11 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import pool, { testDBConnection } from './db/dbconn';
-import todoRoutes from './routes/TodoRoutes';
-import UserRoutes from "./routes/UserRoutes"
+import todoRoutes from './routes/todoRoutes';
+import UserRoutes from "./routes/userRoutes"
 import cookieParser from 'cookie-parser'; 
-import  RestaurantsRoutes  from './routes/RestaurantsRoutes';
-import  DishesRoutes  from './routes/DishesRoutes';
+import  RestaurantsRoutes  from './routes/restaurantsRoutes';
+import  DishesRoutes  from './routes/dishesRoutes';
 
 
 
@@ -77,4 +77,6 @@ app.get('/', (req, res) => {
 // app.listen(PORT, () => {
 //   console.log(`Server is running on port ${PORT}`);
 // });
+
+
 

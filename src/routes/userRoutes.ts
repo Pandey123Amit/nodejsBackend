@@ -11,12 +11,11 @@ const router = express.Router();
 router.post('/signup', registerUser);
 router.post('/logout', verifyToken, logout);
 router.post('/login', loginUser);
-router.get('/get-sub-admin',verifyToken,checkRole([Role.Admin]),getAllSubAdmins );
+router.get('/sub-admin',verifyToken,checkRole([Role.Admin]),getAllSubAdmins );
 
 router.post('/sub-admin', verifyToken,checkRole([Role.Admin]), registerSubAdmin);
-router.post('/sub-admin', verifyToken,checkRole([Role.Admin,Role.SubAdmin]), registerSubAdmin);
+// router.post('/sub-admin', verifyToken,checkRole([Role.Admin,Role.SubAdmin]), registerSubAdmin);
 
-router.get('/restaurant', verifyToken,getAllRestaurants);
 
 
 export default router;

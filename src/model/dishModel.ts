@@ -2,13 +2,13 @@ import pool from "../db/dbconn";
 
 export interface Dish {
   id?: number;
-  restaurant_id: number;
+  restaurantId: number;
   name: string;
   description?: string;
   price: number;
-  is_available?: boolean;
-  created_by: number;  // admin or sub-admin
-  created_at?: Date;
+  isAvailable?: boolean;
+  createdBy: number;  // admin or sub-admin
+  createdAt?: Date;
 }
 
 export class DishModel {
@@ -19,12 +19,12 @@ export class DishModel {
      VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING *`,
       [
-        dish.restaurant_id,
+  dish.restaurantId,
         dish.name,
         dish.description,
         dish.price,
-        dish.is_available ?? true,
-        dish.created_by,
+  dish.isAvailable ?? true,
+  dish.createdBy,
       ]
     );
     return result.rows[0];

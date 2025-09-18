@@ -1,18 +1,20 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import * as UserModel from '../model/userModel';
-import { genratedpassword, userExist, tokenGenerate, insertByColNameAndValueAndTablename } from '../utils/users';
+import {  userExist, tokenGenerate, insertByColNameAndValueAndTablename, genratedpassword } from '../utils/users';
 import { sendEmail } from '../utils/emailSend';
 import pool from '../db/dbconn';
 import { getLatLng } from '../utils/getLocation';
 import { logger } from "../utils/logger";
 import { Role } from "../constant";
-import { RestaurantModel } from "../model/RestaurantsModel";
+import { RestaurantModel } from "../model/restaurantsModel";
 import { AuthenticatedRequest } from "../middlewares/auth.middelwarePermission";
 import { haversineformula } from "../utils/distanceFormula";
 import { AuthenticatedRequest as RoleCheckAuticatedRequest } from "../middlewares/auth.rolecheck";
 // import { Kafka } from "kafkajs";
 // const kafka = new Kafka({ clientId: "rms-app", brokers: ["localhost:9092"] });
 // const producer = kafka.producer();
+
+
 
 
 
@@ -35,7 +37,7 @@ const generatedAccessToken = async (user: number): Promise<string> => {
 
 
 export const registerUser: RequestHandler = async (req, res, next): Promise<any> => {
-    const { Fname, Lname, phonenumber, email, addLine1, addLine2, city, state, country, postal_code, usertype } = req.body;
+    const { Fname, Lname, phonenumber, email, addLine1, addLine2, city, state, country, postalCode, usertype } = req.body;
     if (!(usertype === Role.Admin || usertype === Role.SubAdmin || usertype === Role.User)) {
         res.status(400).json({ message: "Usertype not match" });
         return;
@@ -55,8 +57,8 @@ export const registerUser: RequestHandler = async (req, res, next): Promise<any>
             return;
         }
 
-        const password: string = genratedpassword();
-        const dataset = await UserModel.register(Fname, Lname, email, phonenumber, password, usertype);
+        const password: string[] = await genratedpassword();
+        const dataset = await UserModel.register(Fname, Lname, email, phonenumber, password[0], usertype);
         const check = await insertByColNameAndValueAndTablename(
             'user_roles',
             ['user_id', 'role'],
@@ -75,14 +77,14 @@ export const registerUser: RequestHandler = async (req, res, next): Promise<any>
                        <ul>
                          <li><strong>User ID:</strong> ${dataset.id}</li>
                          <li><strong>Email:</strong> ${dataset.email}</li>
-                         <li><strong>Password:</strong> ${dataset.password}</li>
+                         <li><strong>Password:</strong> ${password[1]}</li>
                        </ul>
                        <p>Use these credentials to log in to the system.</p>`,
             });
         }
 
-        const address_line = addLine1 + " " + addLine2;
-        const prepareData: string = `${address_line}, ${city}, ${state}, ${country}, ${postal_code}`;
+        const addressLine = addLine1 + " " + addLine2;
+        const prepareData: string = `${addressLine}, ${city}, ${state}, ${country}, ${postalCode}`;
         const location = await getLatLng(prepareData);
 
         if (!location) {
@@ -94,7 +96,7 @@ export const registerUser: RequestHandler = async (req, res, next): Promise<any>
         const datasetAddress: UserModel.Address = await insertByColNameAndValueAndTablename(
             'addresses',
             ['user_id', 'address_line', 'city', 'state', 'country', 'postal_code', 'latitude', 'longitude'],
-            [dataset.id, address_line, city, state, country, postal_code, location.lat, location.lng]
+            [dataset.id, addressLine, city, state, country, postalCode, location.lat, location.lng]
         );
 
         if (isEmailSent && datasetAddress) {
@@ -177,7 +179,7 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
             secure: true
         }
         await pool.query('DELETE FROM sessions WHERE session_token = $1', [token]);
-        res.clearCookie('access-token', option);
+        res.clearCookie('token', option);
         res.status(200).json({
             message: 'Logged out successfully'
         });
@@ -193,7 +195,7 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
 
 
 export const registerSubAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const { Fname, Lname, email, phonenumber, addLine1, addLine2, city, state, country, postal_code, permission } = req.body;
+    const { Fname, Lname, email, phonenumber, addLine1, addLine2, city, state, country, postalCode, permission } = req.body;
     let isEmailSent: boolean = false;
 
     try {
@@ -210,8 +212,8 @@ export const registerSubAdmin = async (req: Request, res: Response, next: NextFu
             return;
         }
 
-        const password = genratedpassword();
-        const dataset = await UserModel.register(Fname, Lname, email, phonenumber, password, permission.length > 0 ? Role.SubAdmin : Role.User);
+        const password =await genratedpassword();
+        const dataset = await UserModel.register(Fname, Lname, email, phonenumber, password[0], permission.length > 0 ? Role.SubAdmin : Role.User);
 
 
         const roleId = await insertByColNameAndValueAndTablename('user_roles', ['user_id', 'role'], [dataset.id, Role.SubAdmin]) as { id: number };
@@ -231,7 +233,7 @@ export const registerSubAdmin = async (req: Request, res: Response, next: NextFu
             html: `<h3>Welcome, ${Fname} ${Lname}!</h3>
                    <p>Your sub-admin account has been created.</p>
                    <p>Email: ${dataset.email}</p>
-                   <p>Password: ${password}</p>`
+                   <p>Password: ${password[1]}</p>`
         });
 
         if (isEmailSent) {
@@ -247,14 +249,14 @@ export const registerSubAdmin = async (req: Request, res: Response, next: NextFu
 
         if (addLine1 || addLine2) {
             const addressLine = `${addLine1 || ''} ${addLine2 || ''}`.trim();
-            const fullAddress = `${addressLine}, ${city}, ${state}, ${country}, ${postal_code}`;
+            const fullAddress = `${addressLine}, ${city}, ${state}, ${country}, ${postalCode}`;
             const location = await getLatLng(fullAddress);
 
             if (location) {
                 await insertByColNameAndValueAndTablename(
                     'addresses',
-                    ['user_id', 'address_line', 'city', 'state', 'country', 'postal_code', 'latitude', 'longitude'],
-                    [dataset.id, addressLine, city, state, country, postal_code, location.lat, location.lng]
+                    ['userId', 'addressLine', 'city', 'state', 'country', 'postalCode', 'latitude', 'longitude'],
+                    [dataset.id, addressLine, city, state, country, postalCode, location.lat, location.lng]
                 );
             } else {
                 logger.warn(`registerSubAdmin: Could not fetch location for address of user ${dataset.id}`);

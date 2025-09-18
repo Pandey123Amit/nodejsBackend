@@ -1,0 +1,5 @@
+[2025-09-17 23:34:54] [ERROR]: registerUser: column "userId" of relation "addresses" does not exist
+[2025-09-17 23:35:58] [DEBUG]: registerUser: User with this email already exists
+[2025-09-17 23:39:00] [ERROR]: registerUser: column "userId" of relation "addresses" does not exist
+[2025-09-17 23:39:18] [INFO]: registerUser: Email sent to kushpan5dd5de2244222y@gmail.com
+[2025-09-17 23:42:18] [INFO]: registerUser: Email sent to dbs118781@gmail.com

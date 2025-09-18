@@ -1,4 +1,4 @@
-import * as todoModel from '../model/TodoModel';
+import * as todoModel from '../model/todoModel';
 import { Express } from 'express';
 import dotenv from 'dotenv';
 import nodemailer from 'nodemailer';

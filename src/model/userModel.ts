@@ -1,6 +1,7 @@
 import { log } from 'console';
 import pool from '../db/dbconn';
 import { Role } from '../constant';
+import { verifyPassword } from '../utils/users';
 
 
 export interface User {
@@ -23,15 +24,15 @@ export interface Session {
 }
 
 export interface Address {
-    user_id: number;
-    address_line: string;
+    userId: number;
+    addressLine: string;
     city?: string;
     state?: string;
     country?: string;
-    postal_code?: string;
+    postalCode?: string;
     latitude?: number;
     longitude?: number;
-    created_at?: string;
+    createdAt?: string;
 }
 
 export interface SubAdmin {
@@ -39,7 +40,7 @@ export interface SubAdmin {
     name: string;
     phonenumber: string;
     usertype: string;
-    role_assigned: string; 
+    roleAssigned: string; 
 }
 
 
@@ -67,7 +68,9 @@ export const checkCredentails = async (
         //console.log(email,password);
 
         const dataset: User = queryValue.rows[0];
-        if (dataset && (dataset.username === email.split('@')[0] || dataset.email === email) && dataset.password === password) {
+        const isValidPassword = await verifyPassword(password, dataset.password);
+
+        if (dataset && (dataset.username === email.split('@')[0] || dataset.email === email) && dataset.password === password && isValidPassword) {
             //console.log("inside if check:",dataset);
             return { success: true, user: dataset };
         }
@@ -78,6 +81,7 @@ export const checkCredentails = async (
         throw new Error('Something went wrong in checkCredentials');
     }
 };
+
 
 
 export const findById = async (userid: number): Promise<User & Address> => {
@@ -130,6 +134,8 @@ export const getAllSubAdmin = async (): Promise<SubAdmin[]> => {
         throw new Error("Something went wrong while fetching sub-admins");
     }
 };
+
+ 
 
 
 
